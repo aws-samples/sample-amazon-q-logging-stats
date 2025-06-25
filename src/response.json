@@ -1,0 +1,1 @@
+{"statusCode": 200, "body": "{\"message\": \"Setup completed successfully\", \"bucket_name\": \"mb3pmetricsint\", \"region\": \"us-east-1\", \"export_users\": true, \"output_file\": \"users.csv\"}"}

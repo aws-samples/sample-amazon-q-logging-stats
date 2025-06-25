@@ -1,0 +1,6 @@
+{
+  "bucket_name": "mb3pmetricsintegration",
+  "region": "us-east-1",
+  "export_users": true,
+  "output_file": "users.csv"
+}
