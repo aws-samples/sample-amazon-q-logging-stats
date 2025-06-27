@@ -18,7 +18,7 @@ The architecture diagram above illustrates the complete data flow and component 
 
 ## Components
 
-### 1. One-time Setup - Python Script (`setup_q_developer_3p_metrcis.py`)
+### 1. Setup Approach 1 - Python Script (`setup_q_developer_3p_metrcis.py`)
 
 A Python script that automates the setup process for Amazon Q Developer data ingestion to 3P Partner:
 - Creates an S3 bucket with required permissions for both Amazon Q and CloudTrail
@@ -26,14 +26,14 @@ A Python script that automates the setup process for Amazon Q Developer data ing
 - Provides instructions for manual Amazon Q Developer configuration
 - Exports users from AWS IAM Identity Center
 
-### 2. One-time Setup - Lambda Function (`q_developer_3p_metrics_setup_lambda.py`)
+### 2. Setup Approach 2 - Lambda Function (`q_developer_3p_metrics_setup_lambda.py`)
 
 A serverless AWS Lambda function that performs the same setup process, suitable for automated or scheduled execution:
 - Creates an S3 bucket with required permissions
 - Sets up CloudTrail with necessary configuration
 - Exports users from AWS IAM Identity Center (optional)
 
-### 3. Daily Scheduled Job - IAM Identity Center User Extraction Lambda (`iam_identity_center_user_extract_lambda.py`)
+### 3. Additional Component - IAM Identity Center User Extraction Lambda (`iam_identity_center_user_extract_lambda.py`)
 
 A dedicated serverless AWS Lambda function that focuses solely on extracting users from IAM Identity Center:
 - Connects to IAM Identity Center
@@ -44,15 +44,28 @@ A dedicated serverless AWS Lambda function that focuses solely on extracting use
 ## Prerequisites
 
 - AWS CLI configured with appropriate permissions
-- Python 3.6+
+- Python 3.11+
 - AWS account with access to Amazon Q Developer, CloudTrail, and IAM Identity Center
 - Appropriate IAM permissions for the user/role running these scripts
 
 ## Setup Instructions
 
-### Python Environment Setup
+**Choose Your Setup Approach:**
 
-Before running the scripts, set up a Python virtual environment:
+- **Approach 1 (Python Script)**: Best for one-time setup, immediate feedback, and local control
+- **Approach 2 (Lambda Function)**: Best for automated/scheduled setup, serverless execution, and production environments
+
+Choose one of the following setup approaches based on your preference:
+
+### Approach 1: Python Script (Local Execution)
+
+This approach runs the setup script locally on your machine. Choose this if you prefer direct control and immediate feedback.
+
+#### Prerequisites
+- AWS CLI configured with appropriate permissions
+- Python 3.11+
+
+#### Step 1: Python Environment Setup
 
 1. **Create and activate a virtual environment**:
 
@@ -81,9 +94,7 @@ Before running the scripts, set up a Python virtual environment:
    python -c "import boto3; print(boto3.__version__)"
    ```
 
-### Option 1: Python Script Setup
-
-#### Usage
+#### Step 2: Run the Setup Script
 
 1. **Activate your virtual environment**:
    ```bash
@@ -103,9 +114,13 @@ Before running the scripts, set up a Python virtual environment:
    python src/setup_q_developer_3p_metrcis.py --bucket-name q-developer-metrics --region us-west-2 --export-users --output-file identity_center_users.csv
    ```
 
-### Option 2: Lambda Function Setup
+---
 
-#### 1. Create the IAM Role for Lambda
+### Approach 2: Lambda Function (Serverless Execution)
+
+This approach deploys the setup as a Lambda function that can be invoked manually or on a schedule. Choose this if you prefer serverless execution or need automated/scheduled setup.
+
+#### Step 1: Create the IAM Role for Lambda
 
 First, create a trust policy file:
 
@@ -135,7 +150,7 @@ aws iam create-role \
   --assume-role-policy-document file://trust-policy.json
 ```
 
-#### 2. Attach Permissions to the Role
+#### Step 2: Attach Permissions to the Role
 
 The Lambda function requires specific permissions. Use the provided policy document:
 
@@ -146,7 +161,7 @@ aws iam put-role-policy \
   --policy-document file://lambda_role_policy.json
 ```
 
-#### 3. Package and Deploy the Lambda Function
+#### Step 3: Package and Deploy the Lambda Function
 
 ```bash
 # Package the Lambda function
@@ -155,7 +170,7 @@ zip -r q_developer_3p_metrics_setup_lambda.zip q_developer_3p_metrics_setup_lamb
 # Create the Lambda function
 aws lambda create-function \
   --function-name QDeveloper3PSetup \
-  --runtime python3.9 \
+  --runtime python3.11 \
   --handler q_developer_3p_metrics_setup_lambda.lambda_handler \
   --role $(aws iam get-role --role-name lambda-q-developer-role --query 'Role.Arn' --output text) \
   --zip-file fileb://q_developer_3p_metrics_setup_lambda.zip \
@@ -163,7 +178,7 @@ aws lambda create-function \
   --memory-size 256
 ```
 
-#### 4. Invoke the Lambda Function
+#### Step 4: Invoke the Lambda Function
 
 Create an event file:
 
@@ -191,7 +206,7 @@ aws lambda invoke \
 cat response.json
 ```
 
-#### 5. Set Up Scheduled Invocation (Optional)
+#### Step 5: Set Up Scheduled Invocation (Optional)
 
 Create an EventBridge rule to run the Lambda function on a schedule:
 
@@ -220,7 +235,13 @@ aws events put-targets \
   }]'
 ```
 
-## IAM Identity Center User Extraction Lambda Setup
+---
+
+## Additional Component: Daily IAM Identity Center User Extraction
+
+After completing either Approach 1 or Approach 2 above, you can optionally set up a separate Lambda function for daily user extraction from IAM Identity Center. This is useful if you need regular updates of user information.
+
+### IAM Identity Center User Extraction Lambda Setup
 
 This Lambda function is designed to run on a schedule to extract users from IAM Identity Center.
 
@@ -256,7 +277,7 @@ zip -r iam_identity_center_user_extract_lambda.zip iam_identity_center_user_extr
 # Create the Lambda function
 aws lambda create-function \
   --function-name IAMIdentityCenterUserExtract \
-  --runtime python3.9 \
+  --runtime python3.11 \
   --handler iam_identity_center_user_extract_lambda.lambda_handler \
   --role $(aws iam get-role --role-name lambda-iam-identity-center-extract-role --query 'Role.Arn' --output text) \
   --zip-file fileb://iam_identity_center_user_extract_lambda.zip \
@@ -310,7 +331,7 @@ aws events put-targets \
 
 ## Manual Configuration Steps
 
-After running either the setup script or Lambda function, complete these manual steps:
+After completing either Approach 1 (Python Script) or Approach 2 (Lambda Function), complete these manual steps:
 
 1. **Subscribe to Amazon Q Developer Pro**
 2. **Go to the Amazon Q Developer console**
@@ -419,7 +440,7 @@ aws lambda update-function-code \
 ## Requirements
 
 - AWS CLI configured with appropriate permissions
-- Python 3.6+
+- Python 3.11+
 - Boto3 library (installed via requirements.txt)
 - AWS account with access to Amazon Q Developer, CloudTrail, and IAM Identity Center
 
@@ -429,15 +450,15 @@ aws lambda update-function-code \
 ├── README.md
 ├── requirements.txt
 └── src/
-    ├── setup_q_developer_3p_metrcis.py          # Main setup script
-    ├── q_developer_3p_metrics_setup_lambda.py   # Lambda version of setup
-    ├── iam_identity_center_user_extract_lambda.py # User extraction Lambda
-    ├── cleanup_q_developer_3p_metrics.py        # Cleanup script
-    ├── trust-policy.json                        # IAM trust policy
-    ├── lambda_role_policy.json                  # Main Lambda permissions
-    ├── iam_identity_center_policy.json          # User extraction permissions
-    ├── event.json                               # Main Lambda event template
-    ├── iam_identity_center_event.json           # User extraction event template
+    ├── setup_q_developer_3p_metrcis.py          # Approach 1: Python script for local execution
+    ├── q_developer_3p_metrics_setup_lambda.py   # Approach 2: Lambda function for serverless execution
+    ├── iam_identity_center_user_extract_lambda.py # Additional: Daily user extraction Lambda
+    ├── cleanup_q_developer_3p_metrics.py        # Cleanup script for removing AWS resources
+    ├── trust-policy.json                        # IAM trust policy for Lambda roles
+    ├── lambda_role_policy.json                  # Main Lambda permissions policy
+    ├── iam_identity_center_policy.json          # User extraction Lambda permissions
+    ├── event.json                               # Event template for main Lambda function
+    ├── iam_identity_center_event.json           # Event template for user extraction Lambda
     └── tests/
         ├── test_setup_q_developer_3p_metrics.py
         ├── test_iam_identity_center_user_extract_lambda.py
@@ -446,7 +467,9 @@ aws lambda update-function-code \
 
 ## Cleanup
 
-### Option 1: Python Cleanup Script
+Choose one of the following cleanup approaches:
+
+### Approach 1: Automated Cleanup Script (Recommended)
 
 Use the automated cleanup script to remove all AWS resources (except Amazon Q Developer configurations):
 
@@ -470,9 +493,9 @@ Use the automated cleanup script to remove all AWS resources (except Amazon Q De
    python src/cleanup_q_developer_3p_metrics.py --bucket-name q-developer-metrics --confirm
    ```
 
-### Option 2: Manual Cleanup Steps
+### Approach 2: Manual Cleanup Steps
 
-If you prefer to clean up resources manually:
+If you prefer to clean up resources manually or the automated script fails:
 
 #### 1. Delete EventBridge Rules
 
