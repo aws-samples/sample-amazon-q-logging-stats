@@ -6,6 +6,7 @@ This repository provides tools for integrating Amazon Q Developer with third-par
 
 ![Architecture Diagram](generated-diagrams/amazon_q_developer_3p_updated.png)
 
+
 The solution creates a complete data pipeline:
 - **Amazon Q Developer** generates usage metrics and prompt logs
 - **CloudTrail** captures API events for comprehensive auditing
