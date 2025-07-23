@@ -4,7 +4,7 @@ This repository provides tools for integrating Amazon Q Developer with third-par
 
 ## Architecture Overview
 
-![Architecture Diagram](generated-diagrams/amazon_q_developer_3p_updated.png)
+![Architecture Diagram](generated-diagrams/amazon_q_developer_3p_single_account_labeled.png)
 
 
 The solution creates a complete data pipeline:
