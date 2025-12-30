@@ -209,7 +209,7 @@ class QDeveloper3PSetup:
             print(f"Error creating S3 bucket: {e}")
             return False
 
-    def setup_cloudtrail(self, trail_name="QDeveloper3PTrail"):
+    def setup_cloudtrail(self, trail_name="KiroMetricsTrail"):
         """Setup CloudTrail with required configuration"""
         try:
             # Check if trail exists

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Amazon Q Developer Data Ingestion to 3P - Automation Script
+Kiro Data Ingestion to 3P - Automation Script
 
-This script automates the setup process for Amazon Q Developer data ingestion to 3P:
+This script automates the setup process for Kiro data ingestion to 3P:
 1. Creates an S3 bucket with required permissions for both Amazon Q and CloudTrail
 2. Sets up CloudTrail with necessary configuration
-3. Provides instructions for manual Amazon Q Developer configuration
+3. Provides instructions for manual Kiro configuration
 4. Exports users from AWS IAM Identity Center
 """
 
@@ -31,7 +31,7 @@ class QDeveloper3PSetup:
         self.identity_store_client = boto3.client('identitystore', region_name=region)
         self.account_id = boto3.client('sts').get_caller_identity().get('Account')
         
-        print(f"Initializing Amazon Q Developer to 3P setup in {region}")
+        print(f"Initializing Kiro metrics setup in {region}")
 
     def create_s3_bucket(self):
         """Create S3 bucket with required permissions for both Amazon Q and CloudTrail"""
@@ -112,23 +112,24 @@ class QDeveloper3PSetup:
             return False
 
     def display_q_developer_instructions(self):
-        """Display instructions for manual Amazon Q Developer configuration"""
+        """Display instructions for manual Kiro metrics configuration"""
         print("\n" + "="*80)
-        print("MANUAL STEP: Amazon Q Developer Configuration")
+        print("MANUAL STEP: Kiro Configuration")
         print("="*80)
         print("Please complete the following steps manually:")
-        print("\n1. Subscribe to Amazon Q Developer Pro")
+        print("\n1. Subscribe to Kiro")
         print("2. Go to: https://us-east-1.console.aws.amazon.com/amazonq/developer/home?region=us-east-1#/settings?region=us-east-1")
-        print("3. Edit Preferences – Enable prompt logging:")
-        print(f"   - Set S3 location to: s3://{self.bucket_name}/q-developer/prompt-logs/")
-        print("4. Edit Amazon Q Developer usage activity:")
-        print("   - Enable 'Collect granular metrics per user'")
-        print(f"   - Set S3 location to: s3://{self.bucket_name}/q-developer/metrics/")
+        print("3. Select Settings")
+        print("4. Under Kiro settings ")
+        print("    – Enable Prompt logging:")
+        print(f"   - Set S3 location to: s3://{self.bucket_name}/kiro/prompt-logs/")
+        print("    - Enable 'Kiro user activity report")
+        print(f"   - Set S3 location to: s3://{self.bucket_name}/kiro/user-activity/")
         print("\nAfter completing these steps, press Enter to continue...")
         input()
         return True
 
-    def setup_cloudtrail(self, trail_name="QDeveloper3PTrail"):
+    def setup_cloudtrail(self, trail_name="KiroMetricsTrail"):
         """Setup CloudTrail with required configuration"""
         try:
             # Check if trail exists
@@ -153,7 +154,7 @@ class QDeveloper3PSetup:
             else:
                 print(f"CloudTrail trail {trail_name} already exists")
             
-            # Enable data events for CodeWhisperer, Q Developer Integration, CodeWhisperer Customization
+            # Enable data events for CodeWhisperer, Kiro Integration, CodeWhisperer Customization
             advanced_event_selectors = [
                 {
                     'Name': 'Log CodeWhisperer events',
@@ -169,7 +170,7 @@ class QDeveloper3PSetup:
                     ]
                 },
                 {
-                    'Name': 'Log Q Developer Integration events',
+                    'Name': 'Log Kiro Integration events',
                     'FieldSelectors': [
                         {
                             'Field': 'eventCategory',
@@ -301,14 +302,14 @@ class QDeveloper3PSetup:
 
     def run_setup(self, export_users=True, output_file="users.csv"):
         """Run the complete setup process"""
-        print("Starting Amazon Q Developer to 3P setup...")
+        print("Starting Kiro metrics setup...")
         
         # Step 1: Create S3 bucket with proper permissions
         if not self.create_s3_bucket():
             print("Failed to create S3 bucket. Aborting setup.")
             return False
         
-        # Step 2: Display instructions for manual Amazon Q Developer configuration
+        # Step 2: Display instructions for manual Kiro configuration
         self.display_q_developer_instructions()
         
         # Step 3: Setup CloudTrail
@@ -323,8 +324,8 @@ class QDeveloper3PSetup:
                 # Continue anyway as this is optional
         
         print("\nSetup completed successfully!")
-        print(f"S3 bucket '{self.bucket_name}' is configured for Amazon Q Developer data ingestion")
-        print(f"CloudTrail is configured to log Q Developer events to '{self.bucket_name}/cloudtrail/'")
+        print(f"S3 bucket '{self.bucket_name}' is configured for Kiro data ingestion")
+        print(f"CloudTrail is configured to log Kiro events to '{self.bucket_name}/cloudtrail/'")
         if export_users:
             print(f"IAM Identity Center users exported to s3://{self.bucket_name}/users/{output_file}")
         
@@ -332,7 +333,7 @@ class QDeveloper3PSetup:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Amazon Q Developer Data Ingestion to 3P - Setup Tool')
+    parser = argparse.ArgumentParser(description='Kiro Data Ingestion to 3P - Setup Tool')
     parser.add_argument('--bucket-name', required=True, help='Name of the S3 bucket to create')
     parser.add_argument('--region', default='us-east-1', help='AWS region (default: us-east-1)')
     parser.add_argument('--export-users', action='store_true', help='Export users from IAM Identity Center')
